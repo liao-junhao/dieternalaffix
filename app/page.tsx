@@ -86,7 +86,11 @@ export default function Home() {
         {affixOptions.map((affix) => (
           <button
             key={affix}
-            className={\`px-3 py-1 border rounded-full \${priorities.includes(affix) ? "bg-black text-white" : "bg-gray-200"}\`}
+            className={
+              priorities.includes(affix)
+                ? "px-3 py-1 border rounded-full bg-black text-white"
+                : "px-3 py-1 border rounded-full bg-gray-200"
+            }
             onClick={() => handlePriorityChange(affix)}
           >
             {affix}
