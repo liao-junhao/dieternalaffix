@@ -1,3 +1,6 @@
+// REPLACED with updated logic
+// Clear All, slot balancing, 4/4 enforcement, 2 affix max per slot
+
 import { useState } from "react";
 
 const data = {
@@ -13,7 +16,7 @@ const data = {
     "Swarm of Bats": ["Off Hand", "Chest", "Pants"],
     "Spear Flurry": ["Chest", "Pants", "Main Hand"],
     "Wave of Blood": ["Helm", "Chest", "Main Hand"],
-    "Tendrils of Blood": ["Main Hand", "Shoulder", "Pants"],
+    "Tendrils of Blood": ["Shoulder", "Pants", "Off Hand"],
     "Mephitic Cloud": ["Helm", "Shoulder", "Off Hand"]
   }
 };
@@ -30,12 +33,15 @@ export default function Home() {
   const affixOptions = Object.keys(data[selectedClass]);
 
   const handlePriorityChange = (affix) => {
-    setPriorities(prev =>
-      prev.includes(affix)
-        ? prev.filter(a => a !== affix)
-        : [...prev, affix]
-    );
+    if (priorities.includes(affix)) {
+      setPriorities(prev => prev.filter(a => a !== affix));
+    } else {
+      if (priorities.length >= 4) return;
+      setPriorities(prev => [...prev, affix]);
+    }
   };
+
+  const clearAll = () => setPriorities([]);
 
   const computeAssignments = () => {
     const usedSlots = {};
@@ -44,27 +50,26 @@ export default function Home() {
 
     slots.forEach(slot => usedSlots[slot] = []);
 
-    priorities.forEach((affix, idx) => {
+    for (let i = 0; i < priorities.length; i++) {
+      const affix = priorities[i];
       let assigned = 0;
       const validSlots = data[selectedClass][affix];
 
-      // Consider all slot variants (e.g., "Main Hand 1", "Main Hand 2")
-      for (let baseSlot of validSlots) {
-        const matchingSlots = slots.filter(s => s.startsWith(baseSlot));
-        for (let slot of matchingSlots) {
-          if (assigned >= 4) break;
+      for (let base of validSlots) {
+        const variants = slots.filter(s => s.startsWith(base));
+        for (let slot of variants) {
           if (usedSlots[slot].length < 2) {
             usedSlots[slot].push(affix);
             affixMap[affix] = affixMap[affix] || [];
             affixMap[affix].push(slot);
             assigned++;
-            break;
+            if (assigned === 4) break;
           }
         }
-        if (assigned >= 4) break;
+        if (assigned === 4) break;
       }
       affixCount[affix] = assigned;
-    });
+    }
 
     return { usedSlots, affixCount };
   };
@@ -74,7 +79,7 @@ export default function Home() {
   return (
     <div style={{ padding: "2rem", maxWidth: "960px", margin: "0 auto" }}>
       <h1 style={{ fontSize: "1.75rem", fontWeight: "bold", marginBottom: "1rem" }}>
-        🧛 Diablo Immortal Eternal Affix Planner
+        Eternal Affix Planner
       </h1>
 
       <label>Choose Class:</label>
@@ -91,24 +96,32 @@ export default function Home() {
         ))}
       </select>
 
-      <label>Select Affix Priorities (click to toggle):</label>
+      <div style={{ marginBottom: "1rem" }}>
+        <strong>Selected Affixes:</strong> {priorities.length}/4
+        <button onClick={clearAll} style={{ marginLeft: "1rem", padding: "0.25rem 0.5rem" }}>
+          Clear All
+        </button>
+      </div>
+
       <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", marginBottom: "1rem" }}>
-        {affixOptions.map((affix, idx) => {
-          const order = priorities.indexOf(affix);
+        {affixOptions.map((affix) => {
+          const idx = priorities.indexOf(affix);
           return (
             <button
               key={affix}
               onClick={() => handlePriorityChange(affix)}
+              disabled={priorities.length >= 4 && idx === -1}
               style={{
                 padding: "0.25rem 0.75rem",
                 borderRadius: "9999px",
                 border: "1px solid #333",
-                backgroundColor: order >= 0 ? "#000" : "#eee",
-                color: order >= 0 ? "#fff" : "#000",
-                cursor: "pointer"
+                backgroundColor: idx >= 0 ? "#000" : "#eee",
+                color: idx >= 0 ? "#fff" : "#000",
+                cursor: priorities.length >= 4 && idx === -1 ? "not-allowed" : "pointer"
               }}
+              title={priorities.length >= 4 && idx === -1 ? "Only 4 affixes allowed" : ""}
             >
-              {order >= 0 ? `#${order + 1} ` : ""}{affix}{order >= 0 && affixCount[affix] !== undefined ? ` (${affixCount[affix]}/4)` : ""}
+              {idx >= 0 ? `#${idx + 1} ` : ""}{affix} {affixCount[affix] ? `(${affixCount[affix]}/4)` : ""}
             </button>
           );
         })}
