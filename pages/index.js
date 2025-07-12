@@ -30,12 +30,11 @@ export default function Home() {
   const affixOptions = Object.keys(data[selectedClass]);
 
   const handlePriorityChange = (affix) => {
-    setPriorities(prev => {
-      const updated = prev.includes(affix)
+    setPriorities(prev =>
+      prev.includes(affix)
         ? prev.filter(a => a !== affix)
-        : [...prev, affix];
-      return updated;
-    });
+        : [...prev, affix]
+    );
   };
 
   const computeAssignments = () => {
@@ -48,8 +47,11 @@ export default function Home() {
     priorities.forEach((affix, idx) => {
       let assigned = 0;
       const validSlots = data[selectedClass][affix];
+
+      // Consider all slot variants (e.g., "Main Hand 1", "Main Hand 2")
       for (let baseSlot of validSlots) {
-        for (let slot of slots.filter(s => s.startsWith(baseSlot))) {
+        const matchingSlots = slots.filter(s => s.startsWith(baseSlot));
+        for (let slot of matchingSlots) {
           if (assigned >= 4) break;
           if (usedSlots[slot].length < 2) {
             usedSlots[slot].push(affix);
@@ -59,6 +61,7 @@ export default function Home() {
             break;
           }
         }
+        if (assigned >= 4) break;
       }
       affixCount[affix] = assigned;
     });
