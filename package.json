@@ -1,6 +1,7 @@
 {
-  "name": "dieternalaffix",
+  "name": "dieternalaffix-planner",
   "version": "1.0.0",
+  "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -10,10 +11,5 @@
     "next": "14.1.4",
     "react": "18.2.0",
     "react-dom": "18.2.0"
-  },
-  "devDependencies": {
-    "@types/react": "^18.0.37",
-    "@types/node": "^20.4.2",
-    "typescript": "^5.2.2"
   }
 }
